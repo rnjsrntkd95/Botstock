@@ -8,7 +8,7 @@ const SERVER_URL = 'https://boostock.kro.kr:3000';
 // const SERVER_URL = 'http://220.117.130.11:3000';
 
 const AMOUNT_MIN = 1;
-const AMOUNT_MAX = 3;
+const AMOUNT_MAX = 4;
 const priceMap = new Map();
 let upper = false;
 
@@ -157,7 +157,7 @@ const startTradingBot = async () => {
 
 				const price = randomPrice(code, amount); //
 
-				handleBidAsk(botId, code, type, amount, price);
+				handleBidAsk(botId, code, isUP(amount), amount, price);
 
 				orderBot(!type);
 			}, time);
