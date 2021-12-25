@@ -1,11 +1,13 @@
 const fetch = require('node-fetch');
 const eventEmitter = require('./eventEmitter');
 
-/*
+/*	
+	BOTS - 실행할 봇의 개수
 	PRICE_SERVER_URL - 현재가 정보를 요청할 서버 URL
 	SERVER_URL - 매수/매도 주문을 요청할 서버 URL
 */
 
+const BOTS = 50;
 const PRICE_SERVER_URL = 'http://localhost:3000';
 // const SERVER_URL = 'http://118.67.130.70:3000';
 // const SERVER_URL = 'https://boostock.kro.kr:3000';
@@ -154,7 +156,7 @@ const startTradingBot = async () => {
 	await fetchCurrentPrice();
 	const getCurrent = setInterval(fetchCurrentPrice, 500);
 
-	const bots = Array.from({ length: 50 }, (undefined, i) => i % 2 === 1);
+	const bots = Array.from({ length: BOTS }, (undefined, i) => i % 2 === 1);
 	bots.forEach((type, index) => {
 		const orderBot = type => {
 			const time = randomTime();
