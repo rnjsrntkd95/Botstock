@@ -1,16 +1,23 @@
 const fetch = require('node-fetch');
+const eventEmitter = require('./eventEmitter');
+
+/*
+	PRICE_SERVER_URL - 현재가 정보를 요청할 서버 URL
+	SERVER_URL - 매수/매도 주문을 요청할 서버 URL
+*/
 
 const PRICE_SERVER_URL = 'http://localhost:3000';
 // const SERVER_URL = 'http://118.67.130.70:3000';
-const SERVER_URL = 'https://boostock.kro.kr:3000';
+// const SERVER_URL = 'https://boostock.kro.kr:3000';
 // const SERVER_URL = 'http://118.67.132.210:3000';
-// const SERVER_URL = 'http://localhost:3000';
+const SERVER_URL = 'http://localhost:3000';
 // const SERVER_URL = 'http://220.117.130.11:3000';
 
 const AMOUNT_MIN = 1;
-const AMOUNT_MAX = 4;
+const AMOUNT_MAX = 3;
 const priceMap = new Map();
 let upper = false;
+let onoff = false;
 
 const isUP = type => {
 	const flag = type % 2 === 0;
@@ -134,39 +141,52 @@ const randomTime = () => {
 
 const startTradingBot = async () => {
 	const position = await setPosition();
-	setInterval(() => {
+
+	const setDirection = setInterval(() => {
 		upper = !upper;
 	}, 900000);
-	setInterval(() => {
+	const setType = setInterval(() => {
 		Object.keys(position).forEach(code => {
 			position[code] = randomType();
 		});
 	}, 600000);
 
 	await fetchCurrentPrice();
-	setInterval(fetchCurrentPrice, 500);
+	const getCurrent = setInterval(fetchCurrentPrice, 500);
 
-	const bots = Array.from({ length: 400 }, (undefined, i) => i % 2 === 1);
+	const bots = Array.from({ length: 50 }, (undefined, i) => i % 2 === 1);
 	bots.forEach((type, index) => {
 		const orderBot = type => {
 			const time = randomTime();
 			setTimeout(() => {
+				if (!onoff) return;
 				const botId = 80001 + index;
 				const code = randomCode();
 				const amount = randomAmount(); // 1~4 랜덤
 
 				const price = randomPrice(code, amount); //
 
-				handleBidAsk(botId, code, isUP(amount), amount, price);
+				handleBidAsk(botId, code, type, amount, price);
 
 				orderBot(!type);
 			}, time);
 		};
 		orderBot(type);
 	});
+
+	eventEmitter.on('stop', () => {
+		onoff = false;
+		clearInterval(setDirection);
+		clearInterval(setType);
+		clearInterval(getCurrent);
+	});
 };
 
-module.exports = startTradingBot;
+eventEmitter.on('start', () => {
+	if (onoff) eventEmitter.emit('stop');
+	onoff = true;
+	startTradingBot();
+});
 
 // 60000, 10000, 200
 // 3200
